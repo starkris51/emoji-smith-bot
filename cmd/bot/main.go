@@ -28,7 +28,7 @@ func main() {
 				continue
 			}
 
-			client.SendMessage(int(update.Message.Chat.ID), "You said: "+update.Message.Text)
+			client.SendMessage(update.Message.Chat.ID, "You said: "+update.Message.Text)
 		}
 	}
 }

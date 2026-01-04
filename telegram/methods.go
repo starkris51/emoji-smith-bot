@@ -1,6 +1,6 @@
 package telegram
 
-func (c *Client) SendMessage(chatID int, text string) error {
+func (c *Client) SendMessage(chatID int64, text string) error {
 	req := map[string]any{
 		"chat_id": chatID,
 		"text":    text,
