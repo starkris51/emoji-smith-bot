@@ -2,6 +2,7 @@ package main
 
 import (
 	"emoji-smith-bot/telegram"
+	"log"
 	"os"
 
 	"github.com/joho/godotenv"
@@ -12,5 +13,22 @@ func main() {
 	botToken := os.Getenv("TOKEN")
 	client := telegram.New(botToken)
 
-	_ = client.Token
+	offset := 0
+	for {
+		updates, err := client.GetUpdates(offset)
+		if err != nil {
+			log.Println(err)
+			continue
+		}
+
+		for _, update := range updates {
+			offset = update.UpdateID + 1
+
+			if update.Message == nil {
+				continue
+			}
+
+			client.SendMessage(int(update.Message.Chat.ID), "You said: "+update.Message.Text)
+		}
+	}
 }
