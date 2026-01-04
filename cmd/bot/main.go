@@ -18,7 +18,8 @@ func main() {
 	for {
 		updates, err := client.GetUpdates(offset)
 		if err != nil {
-			log.Println(err)
+			log.Println("telegram error:", err)
+			time.Sleep(2 * time.Second)
 			continue
 		}
 
@@ -26,8 +27,6 @@ func main() {
 			offset = update.UpdateID + 1
 
 			if update.Message == nil {
-				log.Println("telegram error:", err)
-				time.Sleep(2 * time.Second)
 				continue
 			}
 
