@@ -1,7 +1,16 @@
 package main
 
-import "fmt"
+import (
+	"emoji-smith-bot/telegram"
+	"os"
+
+	"github.com/joho/godotenv"
+)
 
 func main() {
-	fmt.Println("Hello, Go project!")
+	_ = godotenv.Load(".env")
+	botToken := os.Getenv("TOKEN")
+	client := telegram.New(botToken)
+
+	_ = client.Token
 }

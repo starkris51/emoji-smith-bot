@@ -1,6 +1,8 @@
 package telegram
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
 	"net/http"
 )
@@ -17,6 +19,25 @@ func New(token string) *Client {
 	}
 }
 
-func (c *Client) apiURL(method string) string {
+func (c *Client) ApiURL(method string) string {
 	return fmt.Sprintf("https://api.telegram.org/bot%s/%s", c.Token, method)
+}
+
+func (c *Client) Post(method string, payload any, out any) error {
+	body, err := json.Marshal(payload)
+	if err != nil {
+		return err
+	}
+
+	resp, err := c.Client.Post(
+		c.ApiURL(method),
+		"application/json",
+		bytes.NewReader(body),
+	)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	return json.NewDecoder(resp.Body).Decode(out)
 }
