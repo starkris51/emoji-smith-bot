@@ -30,7 +30,10 @@ func main() {
 				continue
 			}
 
-			client.SendMessage(update.Message.Chat.ID, "You said: "+update.Message.Text)
+			_ = client.SendMessage(
+				update.Message.Chat.ID,
+				"You said: "+update.Message.Text,
+			)
 		}
 	}
 }
