@@ -4,6 +4,7 @@ import (
 	"emoji-smith-bot/telegram"
 	"log"
 	"os"
+	"time"
 
 	"github.com/joho/godotenv"
 )
@@ -25,6 +26,8 @@ func main() {
 			offset = update.UpdateID + 1
 
 			if update.Message == nil {
+				log.Println("telegram error:", err)
+				time.Sleep(2 * time.Second)
 				continue
 			}
 
