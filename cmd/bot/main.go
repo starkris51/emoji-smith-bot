@@ -2,6 +2,7 @@ package main
 
 import (
 	"emoji-smith-bot/telegram"
+	"emoji-smith-bot/utils"
 	"fmt"
 	"log"
 	"os"
@@ -44,11 +45,17 @@ func main() {
 			if update.Message.Text != "" {
 				client.SendMessage(update.Message.Chat.ID, "Please send image or video")
 			} else if len(update.Message.Photo) > 0 {
-				for _, photo := range update.Message.Photo {
-					client.SendMessage(update.Message.Chat.ID, photo.FileID)
+				downloadID, err := client.GetFile(update.Message.Photo[0].FileID)
+				if err != nil {
+					log.Println("telegram error:", err)
+					continue
 				}
+
+				fileURL := fmt.Sprintf("https://api.telegram.org/file/bot%s/%s", botToken, downloadID)
+				localPath := fmt.Sprintf("tmp/%s.jpg", update.Message.Photo[0].FileID)
+
+				utils.DownloadFile(fileURL, localPath)
 			} else if update.Message.Video.FileID != "" {
-				client.SendMessage(update.Message.Chat.ID, "Cool video!")
 			} else if update.Message.Animation.FileID != "" {
 				client.SendMessage(update.Message.Chat.ID, "Great animation!")
 			} else {

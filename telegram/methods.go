@@ -10,6 +10,18 @@ func (c *Client) SendMessage(chatID int64, text string) error {
 	return c.Post("sendMessage", req, &resp)
 }
 
+func (c *Client) GetFile(fileID string) (string, error) {
+	req := map[string]any{
+		"file_id": fileID,
+	}
+
+	var resp struct {
+		filePath string `json:"file_path,omitempty"`
+	}
+	err := c.Post("getFile", req, &resp)
+	return resp.filePath, err
+}
+
 func (c *Client) GetUpdates(offset int) ([]Update, error) {
 	req := map[string]any{
 		"offset":  offset,
