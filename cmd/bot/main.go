@@ -86,6 +86,33 @@ func main() {
 				os.Remove(inputPath)
 				os.Remove(outputPath)
 			} else if update.Message.Video.FileID != "" {
+				fileID, err := client.GetFile(update.Message.Video.FileID)
+				if err != nil {
+					log.Println("telegram error:", err)
+					continue
+				}
+
+				fileURL := fmt.Sprintf("https://api.telegram.org/file/bot%s/%s", botToken, fileID)
+				inputPath := fmt.Sprintf("tmp/%s.mp4", update.Message.Video.FileID)
+				outputPath := fmt.Sprintf("output/%s.webm", update.Message.Video.FileID)
+
+				if err := utils.DownloadFile(fileURL, inputPath); err != nil {
+					log.Println("download error:", err)
+					continue
+				}
+				if err := media.ProcessVideo(inputPath, outputPath); err != nil {
+					log.Println("video processing error:", err)
+					continue
+				}
+
+				if err := client.SendDocument(update.Message.Chat.ID, outputPath); err != nil {
+					log.Println("telegram error:", err)
+					continue
+				}
+
+				// Delete temporary files
+				os.Remove(inputPath)
+				os.Remove(outputPath)
 			} else if update.Message.Animation.FileID != "" {
 				client.SendMessage(update.Message.Chat.ID, "Great animation!")
 			} else {
