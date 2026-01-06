@@ -1,6 +1,7 @@
 package main
 
 import (
+	"emoji-smith-bot/media"
 	"emoji-smith-bot/telegram"
 	"emoji-smith-bot/utils"
 	"fmt"
@@ -15,6 +16,15 @@ func main() {
 	if err := godotenv.Load(); err != nil {
 		log.Fatal("Error loading .env file")
 	}
+
+	if err := os.MkdirAll("tmp", 0755); err != nil {
+		log.Fatalln("failed to create tmp directory:", err)
+	}
+
+	if err := os.MkdirAll("output", 0755); err != nil {
+		log.Fatalln("failed to create output directory:", err)
+	}
+
 	botToken := os.Getenv("TOKEN")
 
 	if botToken == "" {
@@ -45,16 +55,36 @@ func main() {
 			if update.Message.Text != "" {
 				client.SendMessage(update.Message.Chat.ID, "Please send image or video")
 			} else if len(update.Message.Photo) > 0 {
-				downloadID, err := client.GetFile(update.Message.Photo[0].FileID)
+				best := update.Message.Photo[len(update.Message.Photo)-1]
+
+				fileID, err := client.GetFile(best.FileID)
 				if err != nil {
 					log.Println("telegram error:", err)
 					continue
 				}
 
-				fileURL := fmt.Sprintf("https://api.telegram.org/file/bot%s/%s", botToken, downloadID)
-				localPath := fmt.Sprintf("tmp/%s.jpg", update.Message.Photo[0].FileID)
+				fileURL := fmt.Sprintf("https://api.telegram.org/file/bot%s/%s", botToken, fileID)
+				inputPath := fmt.Sprintf("tmp/%s.jpg", best.FileID)
+				outputPath := fmt.Sprintf("output/%s.jpg", best.FileID)
 
-				utils.DownloadFile(fileURL, localPath)
+				if err := utils.DownloadFile(fileURL, inputPath); err != nil {
+					log.Println("download error:", err)
+					continue
+				}
+
+				if err := media.ProcessImage(inputPath, outputPath); err != nil {
+					log.Println("image processing error:", err)
+					continue
+				}
+
+				if err := client.SendDocument(update.Message.Chat.ID, outputPath); err != nil {
+					log.Println("telegram error:", err)
+					continue
+				}
+
+				// Delete temporary files
+				os.Remove(inputPath)
+				os.Remove(outputPath)
 			} else if update.Message.Video.FileID != "" {
 			} else if update.Message.Animation.FileID != "" {
 				client.SendMessage(update.Message.Chat.ID, "Great animation!")
