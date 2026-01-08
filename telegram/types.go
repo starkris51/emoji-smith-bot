@@ -10,12 +10,26 @@ type Message struct {
 	Chat      Chat        `json:"chat"`
 	Text      string      `json:"text,omitempty"`
 	Photo     []PhotoSize `json:"photo,omitempty"`
-	Video     Video       `json:"video"`
-	Animation Animation   `json:"animation"`
+	Video     *Video      `json:"video,omitempty"`
+	Animation *Animation  `json:"animation,omitempty"`
+	Sticker   *Sticker    `json:"sticker,omitempty"`
 }
 
 type Chat struct {
 	ID int64 `json:"id"`
+}
+
+type Sticker struct {
+	FileID       string `json:"file_id"`
+	Width        int    `json:"width"`
+	Height       int    `json:"height"`
+	IsAnimated   bool   `json:"is_animated"`
+	IsVideo      bool   `json:"is_video"`
+	Emoji        string `json:"emoji,omitempty"`
+	SetName      string `json:"set_name,omitempty"`
+	FileSize     int    `json:"file_size"`
+	MimeType     string `json:"mime_type,omitempty"`
+	FileUniqueID string `json:"file_unique_id,omitempty"`
 }
 
 type Animation struct {

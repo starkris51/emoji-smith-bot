@@ -65,19 +65,35 @@ func main() {
 				best := update.Message.Photo[len(update.Message.Photo)-1]
 				if err := utils.HandleTelegramMedia(client, botToken, chatID, best.FileID, "png", media.ProcessImage); err != nil {
 					log.Println("photo handler error:", err)
-					client.SendMessage(update.Message.Chat.ID, err.Error())
+					_ = client.SendMessage(update.Message.Chat.ID, err.Error())
 				}
 
-			case update.Message.Video.FileID != "":
+			case update.Message.Video != nil:
 				if err := utils.HandleTelegramMedia(client, botToken, chatID, update.Message.Video.FileID, "webm", media.ProcessVideo); err != nil {
 					log.Println("video handler error:", err)
-					client.SendMessage(update.Message.Chat.ID, err.Error())
+					_ = client.SendMessage(update.Message.Chat.ID, err.Error())
 				}
 
-			case update.Message.Animation.FileID != "":
+			case update.Message.Animation != nil:
 				if err := utils.HandleTelegramMedia(client, botToken, chatID, update.Message.Animation.FileID, "webm", media.ProcessVideo); err != nil {
 					log.Println("animation handler error:", err)
-					client.SendMessage(update.Message.Chat.ID, err.Error())
+					_ = client.SendMessage(update.Message.Chat.ID, err.Error())
+				}
+
+			case update.Message.Sticker != nil:
+				switch {
+				case update.Message.Sticker.IsAnimated && !update.Message.Sticker.IsVideo:
+					_ = client.SendMessage(chatID, "Animated .tgs stickers aren't supported yet. Please send an image, video, or a video sticker.")
+				case update.Message.Sticker.IsVideo:
+					if err := utils.HandleTelegramMedia(client, botToken, chatID, update.Message.Sticker.FileID, "webm", media.ProcessVideo); err != nil {
+						log.Println("sticker (video) handler error:", err)
+						_ = client.SendMessage(chatID, err.Error())
+					}
+				default:
+					if err := utils.HandleTelegramMedia(client, botToken, chatID, update.Message.Sticker.FileID, "png", media.ProcessImage); err != nil {
+						log.Println("sticker (static) handler error:", err)
+						_ = client.SendMessage(chatID, err.Error())
+					}
 				}
 
 			default:

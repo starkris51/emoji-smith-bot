@@ -12,9 +12,9 @@ func ProcessVideo(inputPath string, outputPath string) error {
 		"-t", "3",
 		"-an",
 		"-c:v", "libvpx-vp9",
-		"-pix_fmt", "yuva420p",
 		"-b:v", "0",
 		"-crf", "32",
+		"-pix_fmt", "yuva420p",
 		"-loop", "1",
 		outputPath,
 	)
