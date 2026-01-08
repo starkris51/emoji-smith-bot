@@ -52,71 +52,36 @@ func main() {
 				continue
 			}
 
-			if update.Message.Text != "" {
-				client.SendMessage(update.Message.Chat.ID, "Please send image or video")
-			} else if len(update.Message.Photo) > 0 {
+			chatID := update.Message.Chat.ID
+
+			switch {
+			case update.Message.Text == "/start":
+				_ = client.SendMessage(chatID, "Hello i am the Emoji Smith Bot! Send me an image or video, and I'll convert it into an emoji format that can be uploaded to your emoji pack. \n \nI recommend that images/videos should be the aspect ratio of 1:1, if its 16:9 or 4:3 it will be stretched \n \nVideo emoji will be converted to 3 seconds long make sure your video is less than that, i recommend that you crop before uploading \n \n Made by starkris51")
+
+			case update.Message.Text != "":
+				_ = client.SendMessage(chatID, "Please send image or video")
+
+			case len(update.Message.Photo) > 0:
 				best := update.Message.Photo[len(update.Message.Photo)-1]
-
-				fileID, err := client.GetFile(best.FileID)
-				if err != nil {
-					log.Println("telegram error:", err)
-					continue
+				if err := utils.HandleTelegramMedia(client, botToken, chatID, best.FileID, "png", media.ProcessImage); err != nil {
+					log.Println("photo handler error:", err)
+					client.SendMessage(update.Message.Chat.ID, err.Error())
 				}
 
-				fileURL := fmt.Sprintf("https://api.telegram.org/file/bot%s/%s", botToken, fileID)
-				inputPath := fmt.Sprintf("tmp/%s.jpg", best.FileID)
-				outputPath := fmt.Sprintf("output/%s.jpg", best.FileID)
-
-				if err := utils.DownloadFile(fileURL, inputPath); err != nil {
-					log.Println("download error:", err)
-					continue
+			case update.Message.Video.FileID != "":
+				if err := utils.HandleTelegramMedia(client, botToken, chatID, update.Message.Video.FileID, "webm", media.ProcessVideo); err != nil {
+					log.Println("video handler error:", err)
+					client.SendMessage(update.Message.Chat.ID, err.Error())
 				}
 
-				if err := media.ProcessImage(inputPath, outputPath); err != nil {
-					log.Println("image processing error:", err)
-					continue
+			case update.Message.Animation.FileID != "":
+				if err := utils.HandleTelegramMedia(client, botToken, chatID, update.Message.Animation.FileID, "webm", media.ProcessVideo); err != nil {
+					log.Println("animation handler error:", err)
+					client.SendMessage(update.Message.Chat.ID, err.Error())
 				}
 
-				if err := client.SendDocument(update.Message.Chat.ID, outputPath); err != nil {
-					log.Println("telegram error:", err)
-					continue
-				}
-
-				// Delete temporary files
-				os.Remove(inputPath)
-				os.Remove(outputPath)
-			} else if update.Message.Video.FileID != "" {
-				fileID, err := client.GetFile(update.Message.Video.FileID)
-				if err != nil {
-					log.Println("telegram error:", err)
-					continue
-				}
-
-				fileURL := fmt.Sprintf("https://api.telegram.org/file/bot%s/%s", botToken, fileID)
-				inputPath := fmt.Sprintf("tmp/%s.mp4", update.Message.Video.FileID)
-				outputPath := fmt.Sprintf("output/%s.webm", update.Message.Video.FileID)
-
-				if err := utils.DownloadFile(fileURL, inputPath); err != nil {
-					log.Println("download error:", err)
-					continue
-				}
-				if err := media.ProcessVideo(inputPath, outputPath); err != nil {
-					log.Println("video processing error:", err)
-					continue
-				}
-
-				if err := client.SendDocument(update.Message.Chat.ID, outputPath); err != nil {
-					log.Println("telegram error:", err)
-					continue
-				}
-
-				// Delete temporary files
-				os.Remove(inputPath)
-				os.Remove(outputPath)
-			} else if update.Message.Animation.FileID != "" {
-				client.SendMessage(update.Message.Chat.ID, "Great animation!")
-			} else {
-				client.SendMessage(update.Message.Chat.ID, "Unsupported message type")
+			default:
+				_ = client.SendMessage(chatID, "Unsupported message type")
 			}
 		}
 	}
