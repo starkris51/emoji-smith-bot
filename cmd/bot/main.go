@@ -7,15 +7,15 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/joho/godotenv"
 )
 
 func main() {
-	if err := godotenv.Load(); err != nil {
-		log.Fatal("Error loading .env file")
-	}
+	_ = godotenv.Load()
 
 	if err := os.MkdirAll("tmp", 0755); err != nil {
 		log.Fatalln("failed to create tmp directory:", err)
@@ -60,6 +60,40 @@ func main() {
 
 			case update.Message.Text != "":
 				_ = client.SendMessage(chatID, "Please send image or video")
+
+			case update.Message.Document != nil:
+				doc := update.Message.Document
+
+				outExt := ""
+				var proc func(string, string) error
+
+				mt := strings.ToLower(strings.TrimSpace(doc.MimeType))
+				switch {
+				case strings.HasPrefix(mt, "image/"):
+					outExt = "png"
+					proc = media.ProcessImage
+				case strings.HasPrefix(mt, "video/"):
+					outExt = "webm"
+					proc = media.ProcessVideo
+				default:
+					ext := strings.TrimPrefix(strings.ToLower(filepath.Ext(doc.FileName)), ".")
+					switch ext {
+					case "png", "jpg", "jpeg", "webp", "gif", "bmp", "tif", "tiff":
+						outExt = "png"
+						proc = media.ProcessImage
+					case "mp4", "mov", "mkv", "webm", "avi", "m4v":
+						outExt = "webm"
+						proc = media.ProcessVideo
+					default:
+						_ = client.SendMessage(chatID, "That document doesn't look like an image or video. Please send an image/video file.")
+						continue
+					}
+				}
+
+				if err := utils.HandleTelegramMedia(client, botToken, chatID, doc.FileID, outExt, proc); err != nil {
+					log.Println("document handler error:", err)
+					_ = client.SendMessage(chatID, err.Error())
+				}
 
 			case len(update.Message.Photo) > 0:
 				best := update.Message.Photo[len(update.Message.Photo)-1]

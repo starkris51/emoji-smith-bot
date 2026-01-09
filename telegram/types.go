@@ -13,10 +13,18 @@ type Message struct {
 	Video     *Video      `json:"video,omitempty"`
 	Animation *Animation  `json:"animation,omitempty"`
 	Sticker   *Sticker    `json:"sticker,omitempty"`
+	Document  *Document   `json:"document,omitempty"`
 }
 
 type Chat struct {
 	ID int64 `json:"id"`
+}
+
+type Document struct {
+	FileID   string `json:"file_id"`
+	FileName string `json:"file_name,omitempty"`
+	MimeType string `json:"mime_type,omitempty"`
+	FileSize int    `json:"file_size,omitempty"`
 }
 
 type Sticker struct {
