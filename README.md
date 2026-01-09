@@ -14,20 +14,7 @@ A simple Telegram bot that converts images/videos into emoji-ready formats and s
 
 ### Install FFmpeg
 
-- Ubuntu/Debian:
-  ```sh
-  sudo apt update && sudo apt install -y ffmpeg
-  ```
-- Arch Linux:
-  ```sh
-  sudo pacman -S ffmpeg
-  ```
-- macOS (Homebrew):
-  ```sh
-  brew install ffmpeg
-  ```
-- Windows:
-  - Install FFmpeg from https://ffmpeg.org/download.html and ensure `ffmpeg` is on your `PATH`.
+- https://www.ffmpeg.org/download.html
 
 ## Setup
 
